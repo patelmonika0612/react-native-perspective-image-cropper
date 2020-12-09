@@ -10,16 +10,28 @@ RCT_EXPORT_METHOD(crop:(NSDictionary *)points imageUri:(NSString *)imageUri call
     NSString *parsedImageUri = [imageUri stringByReplacingOccurrencesOfString:@"file://" withString:@""];
     NSURL *fileURL = [NSURL fileURLWithPath:parsedImageUri];
     CIImage *ciImage = [CIImage imageWithContentsOfURL:fileURL];
-    
+   
+    BOOL ratio = ((ciImage.extent.size.height/ciImage.extent.size.width) == 0.750000);
+    if(ratio) {
+        ciImage = [ciImage imageByApplyingOrientation:kCGImagePropertyOrientationRightMirrored];
+    }
+   
     CGPoint newLeft = CGPointMake([points[@"topLeft"][@"x"] floatValue], [points[@"topLeft"][@"y"] floatValue]);
     CGPoint newRight = CGPointMake([points[@"topRight"][@"x"] floatValue], [points[@"topRight"][@"y"] floatValue]);
     CGPoint newBottomLeft = CGPointMake([points[@"bottomLeft"][@"x"] floatValue], [points[@"bottomLeft"][@"y"] floatValue]);
     CGPoint newBottomRight = CGPointMake([points[@"bottomRight"][@"x"] floatValue], [points[@"bottomRight"][@"y"] floatValue]);
     
-    newLeft = [self cartesianForPoint:newLeft height:[points[@"height"] floatValue] ];
-    newRight = [self cartesianForPoint:newRight height:[points[@"height"] floatValue] ];
-    newBottomLeft = [self cartesianForPoint:newBottomLeft height:[points[@"height"] floatValue] ];
-    newBottomRight = [self cartesianForPoint:newBottomRight height:[points[@"height"] floatValue] ];
+    if(ratio) {
+        newLeft = [self cartesianForPointmirror:newLeft height:[points[@"height"] floatValue] ];
+           newRight = [self cartesianForPointmirror:newRight height:[points[@"height"] floatValue] ];
+           newBottomLeft = [self cartesianForPointmirror:newBottomLeft height:[points[@"height"] floatValue] ];
+           newBottomRight = [self cartesianForPointmirror:newBottomRight height:[points[@"height"] floatValue] ];
+    } else {
+        newLeft = [self cartesianForPoint:newLeft height:[points[@"height"] floatValue] ];
+        newRight = [self cartesianForPoint:newRight height:[points[@"height"] floatValue] ];
+        newBottomLeft = [self cartesianForPoint:newBottomLeft height:[points[@"height"] floatValue] ];
+        newBottomRight = [self cartesianForPoint:newBottomRight height:[points[@"height"] floatValue] ];
+    }
     
     
     
@@ -42,6 +54,10 @@ RCT_EXPORT_METHOD(crop:(NSDictionary *)points imageUri:(NSString *)imageUri call
 
 - (CGPoint)cartesianForPoint:(CGPoint)point height:(float)height {
     return CGPointMake(point.x, height - point.y);
+}
+
+- (CGPoint)cartesianForPointmirror:(CGPoint)point height:(float)height {
+    return CGPointMake(point.x, point.y);
 }
 
 @end
